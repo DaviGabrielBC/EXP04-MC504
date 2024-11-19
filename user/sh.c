@@ -139,6 +139,9 @@ getcmd(char *buf, int nbuf)
   gets(buf, nbuf);
   if(buf[0] == 0) // EOF
     return -1;
+  if(strcmp(buf, "exit\n") == 0){
+    return -1;
+  }
   return 0;
 }
 
