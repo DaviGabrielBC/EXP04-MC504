@@ -91,6 +91,9 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
+  uint64 start_time;           // Timestamp for the moment at which the process is created (bulwark)
+  uint64 end_time;             // Timestamp for the moment at which the process is finished (bulwark)
+  uint64 elapsed_time;         // Elapsed time from the start of the process up to its end (bulwark)
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process

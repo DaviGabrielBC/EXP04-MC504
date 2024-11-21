@@ -6,6 +6,9 @@
 #include "spinlock.h"
 #include "proc.h"
 
+uint64 mem_access_time = 0; // (bulwark)
+uint64 mem_access_count = 0; // (bulwark)
+
 uint64
 sys_exit(void)
 {
@@ -43,8 +46,17 @@ sys_sbrk(void)
 
   argint(0, &n);
   addr = myproc()->sz;
+
+  uint64 start_growproc = ticks; // (bulwark)
+  
   if(growproc(n) < 0)
     return -1;
+
+  //Calculating growproc time and count (bulwark)
+  uint64 end_growproc = ticks;
+  mem_access_time += end_growproc - start_growproc;
+  mem_access_count++;
+
   return addr;
 }
 

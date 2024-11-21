@@ -16,6 +16,10 @@
 #include "file.h"
 #include "fcntl.h"
 
+uint64 fs_read_time = 0, fs_write_time = 0, fs_unlink_time = 0; // (bulwark)
+int fs_read_count = 0, fs_write_count = 0, fs_unlink_count = 0; // (bulwark)
+extern uint ticks; // (bulwark)
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -75,8 +79,16 @@ sys_read(void)
   argaddr(1, &p);
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
-    return -1;
-  return fileread(f, p, n);
+    return -1; 
+  
+  // Calculating read time (bulwark)
+  uint start_read = ticks;
+  uint64 temp_read = fileread(f, p, n);
+  uint end_read = ticks;
+  fs_read_time += end_read - start_read;
+  fs_read_count++;
+
+  return temp_read;
 }
 
 uint64
@@ -91,7 +103,14 @@ sys_write(void)
   if(argfd(0, 0, &f) < 0)
     return -1;
 
-  return filewrite(f, p, n);
+  // Calculating write time (bulwark)
+  uint start_write = ticks;
+  uint64 temp_write = filewrite(f, p, n);
+  uint end_write = ticks;
+  fs_write_time += end_write - start_write;
+  fs_write_count++;
+
+  return temp_write;
 }
 
 uint64
@@ -197,6 +216,8 @@ sys_unlink(void)
     return -1;
 
   begin_op();
+  uint start_unlink = ticks; // (bulwark) 
+
   if((dp = nameiparent(path, name)) == 0){
     end_op();
     return -1;
@@ -234,10 +255,15 @@ sys_unlink(void)
 
   end_op();
 
+  // Calculating unlink time (bulwark)
+  uint end_unlink = ticks;
+  fs_unlink_time += end_unlink - start_unlink;
+  fs_unlink_count++;
+
   return 0;
 
 bad:
-  iunlockput(dp);
+  iunlockput(dp); 
   end_op();
   return -1;
 }

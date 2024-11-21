@@ -12,11 +12,15 @@ struct proc proc[NPROC];
 
 struct proc *initproc;
 
+uint finished_processes = 0; // (bulwark)
+
 int nextpid = 1;
 struct spinlock pid_lock;
 
 extern void forkret(void);
 static void freeproc(struct proc *p);
+
+extern uint ticks; // trap.c (bulwark)
 
 extern char trampoline[]; // trampoline.S
 
@@ -145,6 +149,10 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+
+  // Process is now effectively ready (bulwark)
+  p->start_time = ticks;
+  // printf("process has started: pid = %d, ticks = %d\n", p->pid, ticks); // (bulwark)
 
   return p;
 }
@@ -375,6 +383,13 @@ exit(int status)
   
   acquire(&p->lock);
 
+  // Process has finished so we can store the timestamp and calculate elapsed_time (bulwark)
+  p->end_time = ticks;
+  p->elapsed_time = p->end_time - p->start_time;
+  finished_processes++;
+  // printf("finished: %d\n", finished_processes); // (bulwark)
+  //printf("process has ended: pid = %d, lasted = %ld ticks\n", p->pid, p->elapsed_time); // (bulwark)
+  
   p->xstate = status;
   p->state = ZOMBIE;
 

@@ -140,6 +140,11 @@ UPROGS=\
 	$U/_wc\
 	$U/_zombie\
 	$U/_teste\
+	$U/_iotask\
+	$U/_cputask\
+	$U/_runexperiment\
+
+# Added teste, iotask, cputask, runexperiment into UPROGS(bulwark)
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

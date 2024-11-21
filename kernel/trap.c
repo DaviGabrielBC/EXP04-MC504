@@ -9,6 +9,8 @@
 struct spinlock tickslock;
 uint ticks;
 
+extern uint finished_processes; // proc.c (bulwark)
+
 extern char trampoline[], uservec[], userret[];
 
 // in kernelvec.S, calls kerneltrap().
@@ -170,10 +172,12 @@ clockintr()
     release(&tickslock);
   }
 
+  //if(ticks%10000 == 0) printf("%d seconds have passed and %d processes have finished", ticks/10000, finished_processes); // (bulwark)
+
   // ask for the next timer interrupt. this also clears
   // the interrupt request. 1000000 is about a tenth
   // of a second.
-  w_stimecmp(r_time() + 1000000);
+  w_stimecmp(r_time() + 1000); // I removed three zeros, so now 10000 ticks = 1 second (bulwark)
 }
 
 // check if it's an external interrupt or software interrupt,
